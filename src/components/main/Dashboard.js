@@ -57,6 +57,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState();
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState();
+  const [toggleLike, setToggleLike] = useState(false)
 
   const { user } = UserAuth();
   const navigate = useNavigate();
@@ -64,6 +65,10 @@ const Dashboard = () => {
     signOut(auth);
     navigate("/");
   };
+  
+  const handleLikeButton = () =>{
+    setToggleLike(!toggleLike)
+  }
 
   useEffect(() => {
     const getProfile = async () => {
@@ -169,11 +174,15 @@ const Dashboard = () => {
           justify="center"
         >
           <Grid
-            templateRows="repeat(3, 1fr)"
+            templateRows="repeat(1, 1fr)"
             templateColumns="repeat(4, 1fr)"
             className="dasboard"
           >
-            <GridItem colSpan={3}>
+          { loading && <>
+              <p>loading</p>  
+            </>
+          }
+            <GridItem colSpan={3} display={loading? "none" : "" }>
               <Flex align="center" justify="center" flexDirection="column">
                 <PostForm />
                 <Box border="1px solid #e1e1e1" w="100%" p="16px 32px">
@@ -204,9 +213,23 @@ const Dashboard = () => {
                         >
                           {formatDistanceToNow(post.datePosted)}
                         </Text>
-                        <Box pl="32px" py="32px">
-                          <Text fontSize="16px">{post.postContent}</Text>
+                        <Flex pl="32px" py="32px" justify="space-between">
+                        <Box>
+                        <Heading size="md">{post.postTitle}</Heading>
+                        <br/>
+
+                        <Text fontSize="16px">{post.postContent}</Text>
                         </Box>
+                     
+                          <Box mr="24px">{ 
+                            !post.price? <Text>₱ 0.00</Text>  :  <>
+                            <strong>₱ </strong>
+                            {post.price}
+                            
+                            </>
+                          }
+                          </Box>
+                        </Flex>
                         <Flex w="100%" align="center" justify="center">
                           <Image
                             src={post.postImg}
@@ -215,18 +238,48 @@ const Dashboard = () => {
                             onError={(e) => (e.target.style.display = "none")}
                           />
                         </Flex>
-                        <Box
+
+                        <div style={{width: "100%", height: "2px", backgroundColor:"#e1e1e1", }}>
+                    
+                        </div>
+                        
+                        <Flex
                           w="100%"
                           textAlign="start"
-                          pl="80px"
-                          pb="32px"
-                        ></Box>
+                          p="12px 0 32px 0"
+                          
+                          align="center"
+                          justify="space-around"
+                        >
+                        <Box>
+                        <Button onClick={handleLikeButton} bg={toggleLike? "#dc3545" : ""} color={toggleLike? "#fff" : ""} variant="outline">Like</Button>
+                        </Box>
+                        <Box>
+                        <Button variant="outline">Comment</Button>
+                        
+                        </Box>
+                        <Box>
+                        <Menu>
+                          <MenuButton>
+                          <Button variant="outline">
+                            Share
+                          </Button>
+                          </MenuButton>
+                          <MenuList>
+                            <MenuItem>Copy Link</MenuItem>
+                            <MenuItem>Facebook</MenuItem>
+                            <MenuItem>Twitter</MenuItem>
+
+                          </MenuList>
+                        </Menu>
+                        </Box>
+                        </Flex>
                       </Card>
                     ))}
                 </Box>
               </Flex>
             </GridItem>
-            <GridItem rowSpan={2} colSpan={1} w="60%em" bg="#fff" pt="11px">
+            <GridItem rowSpan={2} colSpan={1} w="60%em" bg="#fff" pt="11px" display={loading ? "none" : ""}>
               <Card
                 w="120%"
                 h="7em"
@@ -240,7 +293,7 @@ const Dashboard = () => {
                     <Skeleton height="20px" mb="20px" />
                     <SkeletonText
                       mt="4"
-                      noOfLines={5}
+                      noOfLines={2}
                       spacing="5"
                       height="5em"
                       width="14em"
