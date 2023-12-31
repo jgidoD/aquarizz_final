@@ -64,6 +64,9 @@ const PostOptions = (props) => {
           >
             Delete
           </MenuItem>
+          <MenuItem>
+            Share
+          </MenuItem>
         </MenuList>
       </Menu>
       <AlertDialog
