@@ -7,6 +7,7 @@ import Register from "./components/Register";
 import { AuthContextProvider } from "./components/context/AuthContext";
 import ProtectedRoutes from "./components/protectedRouting/ProtectedRoutes";
 import ProfilePage from "./components/main/ProfilePage";
+import PostPage from './components/main/PostPage.js'
 function App() {
   return (
     <>
@@ -33,6 +34,14 @@ function App() {
                 </ProtectedRoutes>
               }
             />
+            <Route
+            path="/profile/:userId/post/:postId"
+            element={
+              <ProtectedRoutes>
+                <PostPage />
+              </ProtectedRoutes>
+            }
+          />
           </Routes>
         </ChakraProvider>
       </AuthContextProvider>

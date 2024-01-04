@@ -13,6 +13,13 @@ import {
   AlertDialogContent,
   AlertDialogFooter,
   Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
@@ -20,6 +27,7 @@ import { doc, getDoc, collection, deleteDoc } from "firebase/firestore";
 import { auth, db } from "../../../firebase/firebaseConfig";
 import { UserAuth } from "../../context/AuthContext";
 import { useRef } from "react";
+import ShareModal from "./postOptionsComponents/ShareModal";
 
 const PostOptions = (props) => {
   const { user } = UserAuth();
@@ -27,8 +35,9 @@ const PostOptions = (props) => {
   const postId = props.postId;
   const fetchData = props.fetchData;
   const authorId = props.authorId;
+  const deleteOverlay = useDisclosure()
+  const shareModal = useDisclosure()
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
 
   const handleDelete = async () => {
@@ -42,7 +51,10 @@ const PostOptions = (props) => {
 
     fetchData();
   };
-
+const handleShareButton = () => {
+  // shareModal.onOpen()
+  console.log(postId)
+}
   return (
     <>
       <Menu>
@@ -58,18 +70,34 @@ const PostOptions = (props) => {
         <MenuList>
           <MenuItem
             onClick={() => {
-              onOpen();
+              deleteOverlay.onOpen();
             }}
             isDisabled={authorId !== user.uid}
           >
             Delete
           </MenuItem>
+          <MenuItem onClick={handleShareButton}>
+            Share
+            <Modal isOpen={shareModal.isOpen} onClose={shareModal.onClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Share your post.</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+              </ModalBody>
+    
+              <ModalFooter>
+                
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+          </MenuItem>
         </MenuList>
       </Menu>
       <AlertDialog
-        isOpen={isOpen}
+        isOpen={deleteOverlay.isOpen}
         leastDestructiveRef={cancelRef}
-        onClose={onClose}
+        onClose={deleteOverlay.onClose}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
@@ -85,14 +113,14 @@ const PostOptions = (props) => {
               <Button
                 colorScheme="red"
                 onClick={() => {
-                  onClose();
+                  deleteOverlay.onClose();
                   handleDelete();
                 }}
                 ml={3}
               >
                 Delete
               </Button>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button ref={cancelRef} onClick={deleteOverlay.onClose}>
                 Cancel
               </Button>
             </AlertDialogFooter>
