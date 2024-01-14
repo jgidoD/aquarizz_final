@@ -12,8 +12,11 @@ import {
   Button,
   ModalCloseButton,
   Textarea,
+  useToast,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
+import emailjs from "@emailjs/browser";
+import { useRef } from "react";
 
 const Contact = (props) => {
   const {
@@ -22,9 +25,30 @@ const Contact = (props) => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const toast = useToast({
+    defaultValues: { yes_i_understand: false },
+  });
 
   const handleSendFeedback = (data) => {
     console.log(data);
+    emailjs
+      .send("service_zbm3m2j", "template_s82d8as", data, "NPe_0DyLrlq0ymvL9")
+      .then(
+        (result) => {
+          // console.log(result.text);
+          toast({
+            title: "Your feedback is sent.",
+            description: "Thank you for supporting the Aquarizz!",
+            status: "success",
+            duration: 3000,
+            position: "top",
+          });
+        },
+        (error) => {
+          console.log(error.text);
+        }
+      );
+
     reset();
   };
   return (
@@ -47,19 +71,34 @@ const Contact = (props) => {
                 <FormLabel>Email:</FormLabel>
                 <Input
                   type="email"
-                  {...register("email", {
+                  name="user_email"
+                  {...register("user_email", {
                     required: true,
                   })}
                 />
-                {errors.email?.type === "required" && (
+                {errors.user_email?.type === "required" && (
                   <p style={{ color: "#d9534f", fontSize: "12px" }}>
                     Email is required
                   </p>
                 )}
               </FormControl>
               <FormControl>
+                <FormLabel>Name:</FormLabel>
+                <Input
+                  {...register("name", {
+                    required: true,
+                  })}
+                />
+                {errors.name?.type === "required" && (
+                  <p style={{ color: "#d9534f", fontSize: "12px" }}>
+                    Name is required
+                  </p>
+                )}
+              </FormControl>
+              <FormControl>
                 <FormLabel>Subject:</FormLabel>
                 <Input
+                  name="subject"
                   {...register("subject", {
                     required: true,
                   })}
@@ -70,6 +109,7 @@ const Contact = (props) => {
                   </p>
                 )}
               </FormControl>
+
               <FormControl>
                 <FormLabel>Message</FormLabel>
                 <Textarea

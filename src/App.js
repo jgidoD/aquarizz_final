@@ -7,6 +7,8 @@ import Register from "./components/Register";
 import { AuthContextProvider } from "./components/context/AuthContext";
 import ProtectedRoutes from "./components/protectedRouting/ProtectedRoutes";
 import ProfilePage from "./components/main/ProfilePage";
+import PostPage from "./components/main/PostPage.js";
+import Explore from "./components/Explore.js";
 function App() {
   return (
     <>
@@ -26,10 +28,26 @@ function App() {
             />
 
             <Route
+              path="/discover"
+              element={
+                <ProtectedRoutes>
+                  <Explore />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
               path="/profile/:userId"
               element={
                 <ProtectedRoutes>
                   <ProfilePage />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/profile/:userId/post/:postId"
+              element={
+                <ProtectedRoutes>
+                  <PostPage />
                 </ProtectedRoutes>
               }
             />
