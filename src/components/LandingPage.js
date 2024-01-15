@@ -13,16 +13,32 @@ import {
   Input,
   useDisclosure,
   FormLabel,
+  Modal,
+  ModalContent,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
+  ModalCloseButton,
+  InputGroup,
+  InputRightAddon,
+  useToast,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, isRouteErrorResponse, useNavigate } from "react-router-dom";
 import Contact from "./Contact";
 import { useForm } from "react-hook-form";
 import { UserAuth } from "./context/AuthContext";
+import { auth } from "../firebase/firebaseConfig";
+import {
+  fetchSignInMethodsForEmail,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 
 const LandingPage = () => {
+  const toast = useToast();
   const { signIn } = UserAuth();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const emailModal = useDisclosure();
+  const forgotPassword = useDisclosure();
   const {
     register,
     reset,
@@ -33,6 +49,9 @@ const LandingPage = () => {
   const initialRef = useRef(null);
   const finalRef = useRef(null);
   const cancelRef = useRef(null);
+  const [emailForgot, setEmailForgot] = useState();
+  const clear = useRef();
+  const forgotPasswordForm = useForm();
 
   const handleLogin = async (data) => {
     try {
@@ -42,6 +61,51 @@ const LandingPage = () => {
       console.log(err.message);
     }
     reset();
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    clear.current.value = "";
+    // TODO: Implement forgot password functionality
+    const signInMethods = await fetchSignInMethodsForEmail(
+      auth,
+      emailForgot
+    ).catch((err) => {
+      switch (err.code) {
+        case "auth/invalid-email":
+          console.log("Invalid Email");
+          toast({
+            title: "Invalid Email.",
+            description: "Sorry, please check carefully your email address.",
+            status: "error",
+            duration: 3000,
+            position: "top",
+          });
+      }
+    });
+
+    if (signInMethods) {
+      await sendPasswordResetEmail(auth, emailForgot)
+        .then(() => {
+          toast({
+            title: "Password reset email sent!",
+            description: "Please check your email.",
+            status: "success",
+            duration: 3000,
+            position: "top",
+          });
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+        });
+    }
+    // if (!checkEmail) {
+    //   console.log("meh");
+    // }
+    // console.log(checkEmail);
+    setEmailForgot("");
   };
   return (
     <Box w="100vw" h="100vh" className="landingPageWrapper" overflow="hidden">
@@ -60,13 +124,13 @@ const LandingPage = () => {
               variant="solid"
               colorScheme="telegram"
               mr="24px"
-              onClick={onOpen}
+              onClick={emailModal.onOpen}
             >
               Contact Us
             </Button>
             <Contact
-              isOpen={isOpen}
-              onClose={onClose}
+              isOpen={emailModal.isOpen}
+              onClose={emailModal.onClose}
               initialFocusRef={initialRef}
               finalFocusRef={finalRef}
             />
@@ -162,9 +226,40 @@ const LandingPage = () => {
                   </Button>
                 </form>
               </CardBody>
-              <Button my="16px" variant="ghost">
+              <Button onClick={forgotPassword.onOpen} my="16px" variant="ghost">
                 Forgot Password?
               </Button>
+              <Modal
+                isOpen={forgotPassword.isOpen}
+                onClose={forgotPassword.onClose}
+              >
+                <ModalContent>
+                  <ModalCloseButton />
+                  <ModalHeader></ModalHeader>
+                  <ModalBody>
+                    <Text mb="12px">
+                      Enter your email address below to receive a password reset
+                      link.
+                    </Text>
+                    <Input
+                      onChange={(e) => {
+                        setEmailForgot(e.target.value);
+                      }}
+                      type="email"
+                      ref={clear}
+                    />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      isDisabled={!emailForgot}
+                      onClick={handleForgotPassword}
+                      colorScheme="red"
+                    >
+                      Reset
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </Card>
           </Flex>
         </Flex>
