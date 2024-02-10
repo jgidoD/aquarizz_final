@@ -21,22 +21,24 @@ import {
   SkeletonCircle,
   Skeleton,
   Image,
+  MenuGroup,
+  MenuDivider,
+  Divider,
+  useDisclosure,
+  Alert,
+  AlertDialog,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import {
-  HamburgerIcon,
-  CloseIcon,
-  DeleteIcon,
-  ChevronDownIcon,
-  TriangleDownIcon,
-} from "@chakra-ui/icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-
+import { useEffect, useState, useRef } from "react";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import PostForm from "./PostForm";
-import { signOut } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import { auth, db } from "../../firebase/firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 import {
   doc,
@@ -46,64 +48,65 @@ import {
   orderBy,
   collection,
   deleteDoc,
+  where,
 } from "firebase/firestore";
-import PostLists from "./PostLists";
 import { formatDistanceToNow } from "date-fns";
-import DisplayPosts from "./DisplayPosts";
 import Profile from "./Profile";
+import { useForm } from "react-hook-form";
+import Comments from "./mainComponents/Comment";
+import PostComponent from "../PostComponent";
 import PostOptions from "./mainComponents/PostOptions";
+import { Home, Compass, User, LogOut, ShoppingCart } from "react-feather";
 
 const Dashboard = () => {
-  const [profile, setProfile] = useState();
+  // const [profile, setProfile] = useState();
+  const alert = useDisclosure();
+  const cancelRef = useRef();
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState();
-
-  const { user } = UserAuth();
+  const [userData, setUserData] = useState();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+  const { user, userProfile } = UserAuth();
   const navigate = useNavigate();
+
   const handleSignOut = () => {
     signOut(auth);
     navigate("/");
   };
 
-  useEffect(() => {
-    const getProfile = async () => {
+  const getUserData = async () => {
+    if (user) {
       try {
         setLoading(true);
 
-        if (!user) {
-          // Handle the case when user is not defined
-          console.log("can't get user");
-          return;
-        }
-        const docRef = doc(db, "users1", user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setProfile((profile) => {
-            return { ...profile, ...docSnap.data() };
-          });
-        }
-        setLoading(false);
+        const docRef = collection(db, "users1");
+        const docSnap = query(
+          docRef,
+          where("userID", "==", userProfile.userID)
+        );
+        const userData = await getDocs(docSnap);
+        let tempArr = [];
+        userData.forEach((doc) => {
+          tempArr.push(doc.data());
+        });
+        setUserData(...tempArr);
       } catch (err) {
-        // console.log(err.message);
+      } finally {
+        setLoading(false);
       }
-    };
-    getProfile();
-  }, [user]);
-
+    }
+  };
   async function showPosts() {
     const colRef = collection(db, "posts");
     const querySnapshot = await getDocs(
       query(colRef, orderBy("createdAt", "desc"))
     );
-    // const q = query(colRef, orderBy("date", "desc"), limit(5));
     const data = [];
-
-    // onSnapshot(colRef, (snapshot) => {
-    //   snapshot.docs.forEach((doc) => {
-    //     data.push({ ...doc.data(), id: doc.id });
-    //   });
-    // });
 
     querySnapshot.forEach((doc) => {
       data.push({ ...doc.data(), id: doc.id });
@@ -114,18 +117,17 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [posts]);
+    getUserData();
+  }, []);
 
   const fetchData = async () => {
     const userDataPosts = await showPosts();
     setPosts(userDataPosts);
   };
+  // console.log(posts);
 
-  const handleProfile = (e) => {
-    e.preventDefault();
-    navigate("/profile");
-  };
-
+  console.log(user);
+  console.log(userData);
   return (
     <>
       {/* container */}
@@ -139,10 +141,19 @@ const Dashboard = () => {
           boxShadow="1px 0px 12px #aeaeae"
           w="100vw"
           overflow="hidden"
+          bg="#fff"
         >
-          <Heading size="xl">Feed</Heading>
+          <Heading
+            size="xl"
+            onClick={() => {
+              window.location.reload();
+            }}
+            cursor="pointer"
+          >
+            Market
+          </Heading>
           <Flex>
-            <Menu>
+            {/* <Menu>
               <MenuButton
                 as={IconButton}
                 variant="outline"
@@ -151,14 +162,77 @@ const Dashboard = () => {
               <MenuList>
                 <MenuItem
                   onClick={() => {
-                    navigate(`/profile/${user.uid}`);
+                    navigate("/dashboard");
                   }}
+                  icon={<ShoppingCart size={16} />}
                 >
-                  Profile
+                  Buy/Sell
                 </MenuItem>
-                <MenuItem onClick={handleSignOut}>Logout</MenuItem>
+                <Link to="/discover">
+                  <MenuItem icon={<Compass size={16} />}>Discover</MenuItem>
+                </Link>
+
+                <MenuDivider />
+                <MenuGroup title="Account">
+                  <MenuItem
+                    onClick={() => {
+                      navigate(`/profile/${user.uid}`);
+                    }}
+                    icon={<User size={16} />}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem icon={<LogOut size={16} />} onClick={alert.onOpen}>
+                    Logout
+                    <AlertDialog isOpen={alert.isOpen} onClose={alert.onClose}>
+                      <AlertDialogOverlay />
+                      <AlertDialogContent>
+                        <AlertDialogHeader>Are you leaving?</AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <Button
+                            onClick={handleSignOut}
+                            colorScheme="red"
+                            mr="6px"
+                          >
+                            Yes
+                          </Button>
+                          <Button ml="6px" onClick={alert.onClose}>
+                            No
+                          </Button>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </MenuItem>
+                </MenuGroup>
               </MenuList>
-            </Menu>
+            </Menu> */}
+            <Button
+              onClick={() => {
+                navigate(`/profile/${user.uid}`);
+              }}
+              variant="link"
+              color="#000"
+              leftIcon={
+                loading ? (
+                  ""
+                ) : userData ? (
+                  <>
+                    <Box w="30px" h="30px" borderRadius="50%" overflow="hidden">
+                      <Image
+                        objectFit="cover"
+                        h="100%"
+                        w="100%"
+                        src={user.photoURL}
+                      />
+                    </Box>
+                  </>
+                ) : (
+                  <User />
+                )
+              }
+            >
+              Profile
+            </Button>
           </Flex>
         </Flex>
         {/* dashboard main content wrapper */}
@@ -168,14 +242,16 @@ const Dashboard = () => {
           align="center"
           justify="center"
         >
-          <Grid
-            templateRows="repeat(3, 1fr)"
+          {/* commented grid */}
+          <>
+            {/* <Grid
+            templateRows="repeat(1, 1fr)"
             templateColumns="repeat(4, 1fr)"
             className="dasboard"
           >
-            <GridItem colSpan={3}>
+            <GridItem colSpan={3} display={loading ? "none" : ""}>
               <Flex align="center" justify="center" flexDirection="column">
-                <PostForm />
+                <PostForm fetchData={fetchData} />
                 <Box border="1px solid #e1e1e1" w="100%" p="16px 32px">
                   {posts &&
                     posts.map((post) => (
@@ -188,8 +264,8 @@ const Dashboard = () => {
                       >
                         <PostOptions
                           postId={post.id}
-                          fetchData={fetchData}
                           authorId={post.authorId}
+                          fetchData={fetchData}
                         />
 
                         <Box ml="24px" mt="16px" textAlign="start">
@@ -202,11 +278,27 @@ const Dashboard = () => {
                           fontSize="10px"
                           color="gray.500"
                         >
-                          {formatDistanceToNow(post.datePosted)}
+                          {formatDistanceToNow(post.datePosted)} ago
                         </Text>
-                        <Box pl="32px" py="32px">
-                          <Text fontSize="16px">{post.postContent}</Text>
-                        </Box>
+                        <Flex pl="32px" py="32px" justify="space-between">
+                          <Box>
+                            <Heading size="md">{post.postTitle}</Heading>
+                            <br />
+
+                            <Text fontSize="16px">{post.postContent}</Text>
+                          </Box>
+
+                          <Box mr="24px">
+                            {!post.price ? (
+                              <Text>₱ 0.00</Text>
+                            ) : (
+                              <>
+                                <strong>₱ </strong>
+                                {post.price}
+                              </>
+                            )}
+                          </Box>
+                        </Flex>
                         <Flex w="100%" align="center" justify="center">
                           <Image
                             src={post.postImg}
@@ -215,18 +307,52 @@ const Dashboard = () => {
                             onError={(e) => (e.target.style.display = "none")}
                           />
                         </Flex>
-                        <Box
+
+                        <Flex
                           w="100%"
                           textAlign="start"
-                          pl="80px"
-                          pb="32px"
-                        ></Box>
+                          p="12px 0 12px 0"
+                          align="center"
+                          justify="space-around"
+                        >
+                          <Box></Box>
+                        </Flex>
+
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "2px",
+                            backgroundColor: "#e1e1e1",
+                            margin: "0 0 12px 0",
+                          }}
+                        ></div>
+
+                        <Flex
+                          w="100%"
+                          align="center"
+                          justify="center"
+                          mb="12px"
+                        >
+                          <Box w="100%" textAlign="center" m="0 12px">
+                            <Comments
+                              postID={post.id}
+                              authorId={post.authorId}
+                            />
+                          </Box>
+                        </Flex>
                       </Card>
                     ))}
                 </Box>
               </Flex>
             </GridItem>
-            <GridItem rowSpan={2} colSpan={1} w="60%em" bg="#fff" pt="11px">
+            <GridItem
+              rowSpan={2}
+              colSpan={1}
+              w="60%em"
+              bg="#fff"
+              pt="11px"
+              display={loading ? "none" : ""}
+            >
               <Card
                 w="120%"
                 h="7em"
@@ -240,24 +366,215 @@ const Dashboard = () => {
                     <Skeleton height="20px" mb="20px" />
                     <SkeletonText
                       mt="4"
-                      noOfLines={5}
+                      noOfLines={2}
                       spacing="5"
                       height="5em"
                       width="14em"
                     />
                   </>
                 )}
-                {profile && (
+                {userProfile && (
                   <>
-                    <Heading size="xs">
-                      Hello {profile.name.toUpperCase()}!
-                    </Heading>
-                    <Heading size="md">Welcome back.</Heading>
+                    <Box position="relative">
+                      <Heading size="xs">
+                        Hello {userProfile.name.toUpperCase()}!
+                      </Heading>
+                      <Heading size="md">Welcome back.</Heading>
+                    </Box>
                   </>
                 )}
               </Card>
             </GridItem>
-          </Grid>
+          </Grid> */}
+          </>
+          <Flex w="100%" h="100%" justify="center">
+            <Flex
+              flexGrow="1"
+              m="0 24px 0 12px"
+              py="16px"
+              h="100%"
+              flexFlow="column"
+              align="start"
+              border="1px solid #e1e1e1"
+              bg="#fff"
+              boxShadow="0 12px 24px #e1e1e1"
+            >
+              <Card w="100%" p="16px 0" bg="#fff">
+                {userData ? (
+                  userData && (
+                    <Flex
+                      align="center"
+                      justify="center"
+                      w="100%"
+                      h="100%"
+                      flexDirection="column"
+                    >
+                      <Box
+                        w="175px"
+                        h="175px"
+                        borderRadius="50%"
+                        overflow="hidden"
+                      >
+                        <Image
+                          h="100%"
+                          w="100%"
+                          src={
+                            !user.photoURL
+                              ? userData.profileImage
+                              : user.photoURL
+                          }
+                          objectFit="cover"
+                        />
+                      </Box>
+                      <Text as="b" fontSize="xl" mt="8px">
+                        {userData.name}
+                      </Text>
+                      <Text color="gray.500" fontSize="xs">
+                        {userData.email}
+                      </Text>
+                    </Flex>
+                  )
+                ) : (
+                  <Text></Text>
+                )}
+              </Card>
+              <Button
+                mt="12px"
+                onClick={() => {
+                  navigate("/dashboard");
+                }}
+                leftIcon={<ShoppingCart />}
+                variant="none"
+              >
+                Buy&Sell
+              </Button>
+              <Button
+                onClick={() => {
+                  navigate("/discover");
+                }}
+                leftIcon={<Compass />}
+                variant="none"
+              >
+                Discover
+              </Button>
+            </Flex>
+            <Flex flexGrow="1.5" flexDirection="column" bg="#fff">
+              <PostForm fetchData={fetchData} />
+              <Box border="1px solid #e1e1e1" p="16px 32px">
+                {posts &&
+                  posts.map((post) => (
+                    <Card
+                      key={post.id}
+                      mb="32px"
+                      boxShadow="1px 1px 5px #A5A5A5"
+                      borderRadius="6px"
+                      style={{ position: "relative" }}
+                    >
+                      <PostOptions
+                        postId={post.id}
+                        authorId={post.authorId}
+                        fetchData={fetchData}
+                      />
+
+                      <Flex ml="24px" mt="16px" textAlign="start">
+                        <Box display={post.profileImage ? "block" : "none"}>
+                          <Image
+                            h="30px"
+                            w="30px"
+                            borderRadius="50%"
+                            src={
+                              post.authorId.photoURL ? "" : post.profileImage
+                            }
+                            mr="8px"
+                          />
+                        </Box>
+
+                        <Profile name={post.name} authorId={post.authorId} />
+                      </Flex>
+
+                      <Text as="kbd" ml="24px" fontSize="10px" color="gray.500">
+                        {formatDistanceToNow(post.datePosted)} ago
+                      </Text>
+                      <Flex pl="32px" py="32px" justify="space-between">
+                        <Box>
+                          <Heading size="md">{post.postTitle}</Heading>
+                          <br />
+
+                          <Text fontSize="16px">{post.postContent}</Text>
+                        </Box>
+
+                        <Box mr="24px">
+                          {!post.price ? (
+                            <Text>₱ 0.00</Text>
+                          ) : (
+                            <>
+                              <strong>₱ </strong>
+                              {post.price}
+                            </>
+                          )}
+                        </Box>
+                      </Flex>
+                      <Flex w="100%" align="center" justify="center">
+                        <Image
+                          src={post.postImg}
+                          w="20em"
+                          alt="post image"
+                          onError={(e) => (e.target.style.display = "none")}
+                        />
+                      </Flex>
+
+                      <Flex
+                        w="100%"
+                        textAlign="start"
+                        p="12px 0 12px 0"
+                        align="center"
+                        justify="space-around"
+                      >
+                        <Box></Box>
+                      </Flex>
+
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "2px",
+                          backgroundColor: "#e1e1e1",
+                          margin: "0 0 12px 0",
+                        }}
+                      ></div>
+
+                      <Flex w="100%" align="center" justify="center" mb="12px">
+                        <Box w="100%" textAlign="center" m="0 12px">
+                          <Comments postID={post.id} authorId={post.authorId} />
+                        </Box>
+                      </Flex>
+                    </Card>
+                  ))}
+              </Box>
+            </Flex>
+            <Box flexGrow="1" m="0 12px 0 32px" h="100%" bg="#fff">
+              {userProfile && (
+                <>
+                  <Flex justify="center" flexDirection="column">
+                    <Heading fontSize="2xl" pt="6px">
+                      Hello {userProfile.name.toUpperCase()}!
+                    </Heading>
+                    <Heading fontSize="md">Welcome back!</Heading>
+                  </Flex>
+                </>
+              )}
+              <Box mt="12px" borderTop="1px solid #e1e1e1">
+                <Text color="gray.500" fontSize="xs">
+                  Aquarizz | CodeMinded &copy; 2024
+                </Text>
+                <Text color="gray.500" fontSize="xs">
+                  Terms & Conditions
+                </Text>
+                <Text color="gray.500" fontSize="xs">
+                  codeminded.dev@gmail.com
+                </Text>
+              </Box>
+            </Box>
+          </Flex>
         </Flex>
       </Box>
     </>
