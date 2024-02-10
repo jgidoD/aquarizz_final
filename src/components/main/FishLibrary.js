@@ -37,7 +37,6 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 // import { UserAuth } from "./context/AuthContext";
 import { UserAuth } from "../context/AuthContext";
 import axios from "axios";
-import InfiniteScroll from "react-infinite-scroll-component";
 
 const FishLibrary = () => {
   const [fishData, setFishData] = useState([]);
@@ -143,15 +142,20 @@ const FishLibrary = () => {
         w="100vw"
         overflow="hidden"
       >
-        <Heading
-          size="xl"
+        <Flex
+          cursor="pointer"
+          justify="center"
+          align="center"
           onClick={() => {
             window.location.reload();
           }}
-          cursor="pointer"
         >
-          Discover
-        </Heading>
+          <Compass size={32} />
+          <Heading ml="12px" size="xl">
+            Discover
+          </Heading>
+        </Flex>
+
         <Flex>
           <Menu>
             <MenuButton

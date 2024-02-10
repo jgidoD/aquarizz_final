@@ -271,15 +271,20 @@ function ProfilePage() {
                 w="100vw"
                 overflow="hidden"
               >
-                <Heading
-                  size="xl"
+                <Flex
+                  justify="center"
+                  align="center"
                   onClick={() => {
                     window.location.reload();
                   }}
                   cursor="pointer"
                 >
-                  Profile
-                </Heading>
+                  <User size={32} />
+                  <Heading ml="12px" size="xl">
+                    Profile
+                  </Heading>
+                </Flex>
+
                 <Flex>
                   <Menu>
                     <MenuButton
@@ -544,8 +549,11 @@ function ProfilePage() {
                           variant="outline"
                           icon={isOpen ? <ChevronUp /> : <ChevronDown />}
                         ></MenuButton>
-                        <MenuList onClick={changePass.onOpen}>
-                          <MenuItem>Change Password</MenuItem>
+                        <MenuList>
+                          <MenuItem>Edit</MenuItem>
+                          <MenuItem onClick={changePass.onOpen}>
+                            Change Password
+                          </MenuItem>
                           <Modal
                             className="modalPassword"
                             isOpen={changePass.isOpen}
@@ -748,7 +756,13 @@ function ProfilePage() {
                 ) : (
                   postData &&
                   postData.map((post) => (
-                    <Card key={post.id} w="50%" p="24px 24px" my="12px">
+                    <Card
+                      key={post.id}
+                      w="50%"
+                      p="24px 24px"
+                      my="16px"
+                      border="1px solid #e1e1e1"
+                    >
                       <Flex flexDirection="column">
                         <Box>
                           <Profile name={post.name} authorId={post.authorId} />

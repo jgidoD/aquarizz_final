@@ -56,7 +56,7 @@ import { useForm } from "react-hook-form";
 import Comments from "./mainComponents/Comment";
 import PostComponent from "../PostComponent";
 import PostOptions from "./mainComponents/PostOptions";
-import { Home, Compass, User, LogOut, ShoppingCart } from "react-feather";
+import { Home, Compass, User, ShoppingCart, LogOut } from "react-feather";
 
 const Dashboard = () => {
   // const [profile, setProfile] = useState();
@@ -133,6 +133,7 @@ const Dashboard = () => {
       {/* container */}
       <Box className="dashboardWrapper" h="100vh" w="100vw">
         {/* navbarContainer */}
+
         <Flex
           className="navbar"
           justify="space-between"
@@ -141,17 +142,22 @@ const Dashboard = () => {
           boxShadow="1px 0px 12px #aeaeae"
           w="100vw"
           overflow="hidden"
-          bg="#fff"
+          // bg="#BBE2EC"
         >
-          <Heading
-            size="xl"
+          <Flex
+            align="center"
+            justify="center"
             onClick={() => {
               window.location.reload();
             }}
             cursor="pointer"
           >
-            Market
-          </Heading>
+            <ShoppingCart size={32} />
+            <Heading ml="12px" size="xl">
+              Buy&Sell
+            </Heading>
+          </Flex>
+
           <Flex>
             {/* <Menu>
               <MenuButton
@@ -236,6 +242,7 @@ const Dashboard = () => {
           </Flex>
         </Flex>
         {/* dashboard main content wrapper */}
+
         <Flex
           className="dashboardContent"
           pt="24px"
@@ -440,6 +447,7 @@ const Dashboard = () => {
               </Card>
               <Button
                 mt="12px"
+                ml="12px"
                 onClick={() => {
                   navigate("/dashboard");
                 }}
@@ -449,6 +457,7 @@ const Dashboard = () => {
                 Buy&Sell
               </Button>
               <Button
+                ml="12px"
                 onClick={() => {
                   navigate("/discover");
                 }}
@@ -456,6 +465,14 @@ const Dashboard = () => {
                 variant="none"
               >
                 Discover
+              </Button>
+              <Button
+                ml="12px"
+                onClick={handleSignOut}
+                leftIcon={<LogOut />}
+                variant="none"
+              >
+                Logout
               </Button>
             </Flex>
             <Flex flexGrow="1.5" flexDirection="column" bg="#fff">
@@ -562,7 +579,7 @@ const Dashboard = () => {
                   </Flex>
                 </>
               )}
-              <Box mt="12px" borderTop="1px solid #e1e1e1">
+              <Box mt="12px" borderTop="1px solid #e1e1e1" py="12px">
                 <Text color="gray.500" fontSize="xs">
                   Aquarizz | CodeMinded &copy; 2024
                 </Text>
