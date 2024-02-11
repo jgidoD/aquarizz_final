@@ -36,7 +36,7 @@ import {
 
 const LandingPage = () => {
   const toast = useToast();
-  const { signIn } = UserAuth();
+  const { signIn, user, userProfile } = UserAuth();
   const emailModal = useDisclosure();
   const forgotPassword = useDisclosure();
   const {
@@ -51,16 +51,18 @@ const LandingPage = () => {
   const cancelRef = useRef(null);
   const [emailForgot, setEmailForgot] = useState();
   const clear = useRef();
-  const forgotPasswordForm = useForm();
+  // const forgotPasswordForm = useForm();
 
   const handleLogin = async (data) => {
     try {
       await signIn(data.email, data.password);
+      handleSessionStorage();
       navigate("/dashboard");
     } catch (err) {
       console.log(err.message);
     }
     reset();
+    // sessionStorage.setItem("photo", user.photoURL);
   };
 
   const handleForgotPassword = async (e) => {
@@ -117,6 +119,10 @@ const LandingPage = () => {
     // }
     // console.log(checkEmail);
     setEmailForgot("");
+  };
+
+  const handleSessionStorage = () => {
+    console.log(userProfile);
   };
   return (
     <Box w="100vw" h="100vh" className="landingPageWrapper" overflow="hidden">

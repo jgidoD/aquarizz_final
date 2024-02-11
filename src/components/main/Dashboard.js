@@ -56,7 +56,15 @@ import { useForm } from "react-hook-form";
 import Comments from "./mainComponents/Comment";
 import PostComponent from "../PostComponent";
 import PostOptions from "./mainComponents/PostOptions";
-import { Home, Compass, User, ShoppingCart, LogOut } from "react-feather";
+import {
+  Home,
+  Compass,
+  User,
+  ShoppingCart,
+  LogOut,
+  CloudLightning,
+} from "react-feather";
+import { connectStorageEmulator } from "firebase/storage";
 
 const Dashboard = () => {
   // const [profile, setProfile] = useState();
@@ -64,7 +72,7 @@ const Dashboard = () => {
   const cancelRef = useRef();
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState();
-  const [userData, setUserData] = useState();
+  const [userData, setUserData] = useState({});
   const {
     register,
     handleSubmit,
@@ -79,11 +87,14 @@ const Dashboard = () => {
     navigate("/");
   };
 
+  //set session storage for profile picture
+  // sessionStorage.setItem("photo", user.photoURL);
+  // //get session storage value for  profile picture
+  // const profilePic = sessionStorage.getItem("photo");
   const getUserData = async () => {
     if (user) {
       try {
         setLoading(true);
-
         const docRef = collection(db, "users1");
         const docSnap = query(
           docRef,
@@ -94,6 +105,7 @@ const Dashboard = () => {
         userData.forEach((doc) => {
           tempArr.push(doc.data());
         });
+        console.log(tempArr);
         setUserData(...tempArr);
       } catch (err) {
       } finally {
@@ -101,6 +113,11 @@ const Dashboard = () => {
       }
     }
   };
+
+  // console.log(profilePic);
+  // console.log(user.photoURL);
+  // console.log(userData);
+  const handleSessionStorage = () => {};
   async function showPosts() {
     const colRef = collection(db, "posts");
     const querySnapshot = await getDocs(
@@ -114,20 +131,18 @@ const Dashboard = () => {
 
     return data;
   }
-
   useEffect(() => {
     fetchData();
     getUserData();
-  }, []);
-
+    sessionStorage.setItem("photo", user.photoURL);
+    sessionStorage.setItem("email", user.email);
+  }, [user.photoURL]);
   const fetchData = async () => {
     const userDataPosts = await showPosts();
     setPosts(userDataPosts);
   };
   // console.log(posts);
 
-  console.log(user);
-  console.log(userData);
   return (
     <>
       {/* container */}
@@ -396,7 +411,7 @@ const Dashboard = () => {
           </>
           <Flex w="100%" h="100%" justify="center">
             <Flex
-              flexGrow="1"
+              flexGrow=".5"
               m="0 24px 0 12px"
               py="16px"
               h="100%"
@@ -407,74 +422,81 @@ const Dashboard = () => {
               boxShadow="0 12px 24px #e1e1e1"
             >
               <Card w="100%" p="16px 0" bg="#fff">
-                {userData ? (
-                  userData && (
-                    <Flex
-                      align="center"
-                      justify="center"
-                      w="100%"
+                {/* {userData && ( */}
+                <Flex
+                  align="center"
+                  justify="center"
+                  w="100%"
+                  h="100%"
+                  flexDirection="column"
+                >
+                  <Box w="175px" h="175px" borderRadius="50%" overflow="hidden">
+                    <Image
                       h="100%"
-                      flexDirection="column"
-                    >
-                      <Box
-                        w="175px"
-                        h="175px"
-                        borderRadius="50%"
-                        overflow="hidden"
-                      >
-                        <Image
-                          h="100%"
-                          w="100%"
-                          src={
-                            !user.photoURL
-                              ? userData.profileImage
-                              : user.photoURL
-                          }
-                          objectFit="cover"
-                        />
-                      </Box>
+                      w="100%"
+                      src={
+                        sessionStorage.getItem("photo") === "undefined"
+                          ? " "
+                          : sessionStorage.getItem("photo")
+                      }
+                      objectFit="cover"
+                    />
+                  </Box>
+                  {userProfile && (
+                    <>
                       <Text as="b" fontSize="xl" mt="8px">
-                        {userData.name}
+                        {userProfile.name}
                       </Text>
                       <Text color="gray.500" fontSize="xs">
-                        {userData.email}
+                        {/* {sessionStorage.getItem("email") === "undefined"
+                          ? " "
+                          : sessionStorage.getItem("email")} */}
+                        {userProfile.email}
                       </Text>
-                    </Flex>
-                  )
-                ) : (
-                  <Text></Text>
-                )}
+                    </>
+                  )}
+                </Flex>
+                {/* )} */}
               </Card>
-              <Button
-                mt="12px"
-                ml="12px"
-                onClick={() => {
-                  navigate("/dashboard");
-                }}
-                leftIcon={<ShoppingCart />}
-                variant="none"
-              >
-                Buy&Sell
-              </Button>
-              <Button
-                ml="12px"
-                onClick={() => {
-                  navigate("/discover");
-                }}
-                leftIcon={<Compass />}
-                variant="none"
-              >
-                Discover
-              </Button>
-              <Button
-                ml="12px"
-                onClick={handleSignOut}
-                leftIcon={<LogOut />}
-                variant="none"
-              >
-                Logout
-              </Button>
+              {/* <Image src={sessionStorage.getItem("photo")} /> */}
+              <Box w="100%" h="100%">
+                <Flex
+                  className="left-side-nav"
+                  mt="12px"
+                  // ml="12px"
+                  onClick={() => {
+                    navigate("/dashboard");
+                  }}
+                  variant="none"
+                >
+                  <ShoppingCart strokeWidth={1} />
+                  <Text>Buy&Sell</Text>
+                </Flex>
+                <Flex
+                  className="left-side-nav"
+                  // ml="12px"
+                  onClick={() => {
+                    navigate("/discover");
+                  }}
+                  variant="none"
+                >
+                  <Compass strokeWidth={1} />
+                  <Text>Discover</Text>
+                </Flex>
+                <Divider />
+                <Box></Box>
+                <Flex
+                  className="left-side-nav"
+                  // ml="12px"
+                  onClick={handleSignOut}
+                  variant="none"
+                >
+                  <LogOut strokeWidth={1} />
+                  <Text> Logout</Text>
+                </Flex>
+              </Box>
             </Flex>
+
             <Flex flexGrow="1.5" flexDirection="column" bg="#fff">
               <PostForm fetchData={fetchData} />
               <Box border="1px solid #e1e1e1" p="16px 32px">
@@ -573,7 +595,7 @@ const Dashboard = () => {
                 <>
                   <Flex justify="center" flexDirection="column">
                     <Heading fontSize="2xl" pt="6px">
-                      Hello {userProfile.name.toUpperCase()}!
+                      Hello {userProfile.name.toUpperCase()}.
                     </Heading>
                     <Heading fontSize="md">Welcome back!</Heading>
                   </Flex>

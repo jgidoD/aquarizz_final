@@ -550,7 +550,7 @@ function ProfilePage() {
                           icon={isOpen ? <ChevronUp /> : <ChevronDown />}
                         ></MenuButton>
                         <MenuList>
-                          <MenuItem>Edit</MenuItem>
+                          {/* <MenuItem>Edit</MenuItem> */}
                           <MenuItem onClick={changePass.onOpen}>
                             Change Password
                           </MenuItem>
