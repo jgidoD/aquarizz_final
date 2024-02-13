@@ -72,7 +72,7 @@ const PostOptions = (props) => {
   };
   const handleCopyLink = () => {
     //will get the link of the current post
-    const getLink = `${authorId}/post/${postId}`;
+    const getLink = `profile/${authorId}/post/${postId}`;
     const url = window.location.href;
     const splitUrl = url.split("/");
     const modifiedUrl = splitUrl.slice(0, -1).join("/");

@@ -110,6 +110,7 @@ const PostForm = (props) => {
         >
           <FormControl display="flex" justifyContent="space-between" my="8px">
             <Input
+              bg="#fff"
               placeholder="Post Title"
               mr="8px"
               {...register("title", { required: true })}
@@ -118,6 +119,7 @@ const PostForm = (props) => {
               id="postTitle"
             />
             <Input
+              bg="#fff"
               placeholder="Price"
               ml="8px"
               {...register("price", { required: true })}
@@ -128,6 +130,7 @@ const PostForm = (props) => {
           </FormControl>
           <FormControl my="8px">
             <Textarea
+              bg="#fff"
               placeholder="Tell us what you're looking for."
               {...register("content", { required: true })}
               aria-invalid={errors.content ? "true" : "false"}

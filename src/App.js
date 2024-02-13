@@ -10,6 +10,7 @@ import ProfilePage from "./components/main/ProfilePage";
 import PostPage from "./components/main/PostPage.js";
 import Explore from "./components/Explore.js";
 import FishLibrary from "./components/main/FishLibrary.js";
+import About from "./components/main/About.js";
 function App() {
   return (
     <>
@@ -49,6 +50,14 @@ function App() {
               element={
                 <ProtectedRoutes>
                   <PostPage />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <ProtectedRoutes>
+                  <About />
                 </ProtectedRoutes>
               }
             />

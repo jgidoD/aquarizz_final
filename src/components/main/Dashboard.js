@@ -64,6 +64,7 @@ import {
   ShoppingCart,
   LogOut,
   CloudLightning,
+  Info,
 } from "react-feather";
 import { connectStorageEmulator } from "firebase/storage";
 
@@ -144,6 +145,15 @@ const Dashboard = () => {
     setPosts(userDataPosts);
   };
   // console.log(posts);
+
+  const openAbout = () => {
+    const location = window.location.href;
+    const splitUrl = location.split("/");
+    const rootUrl = splitUrl.slice(0, -1).join("/");
+    const finalUrl = rootUrl + "/about";
+    // console.log(finalUrl);
+    window.open(finalUrl, "_blank", "noopener, noreferrer");
+  };
 
   return (
     <>
@@ -423,7 +433,7 @@ const Dashboard = () => {
           <Flex w="100%" h="100%" justify="center">
             <Flex
               flexGrow=".5"
-              m="0 24px 0 12px"
+              m="0 24px 0 24px"
               py="16px"
               h="100%"
               flexFlow="column"
@@ -481,8 +491,8 @@ const Dashboard = () => {
                   }}
                   variant="none"
                 >
-                  <ShoppingCart strokeWidth={1} />
-                  <Text>Buy&Sell</Text>
+                  <ShoppingCart strokeWidth={1.5} />
+                  <Text fontWeight="600">Buy&Sell</Text>
                 </Flex>
                 <Flex
                   className="left-side-nav"
@@ -492,19 +502,31 @@ const Dashboard = () => {
                   }}
                   variant="none"
                 >
-                  <Compass strokeWidth={1} />
-                  <Text>Discover</Text>
+                  <Compass strokeWidth={1.5} />
+                  <Text fontWeight="600">Discover</Text>
                 </Flex>
-                <Divider />
-                <Box></Box>
+                <Flex
+                  className="left-side-nav"
+                  // ml="12px"
+                  onClick={() => {
+                    openAbout();
+                  }}
+                  variant="none"
+                >
+                  <Info strokeWidth={1.5} />
+                  <Text fontWeight="600">About Aquarizz</Text>
+                </Flex>
+                <Box>
+                  <Divider />
+                </Box>
                 <Flex
                   className="left-side-nav"
                   // ml="12px"
                   onClick={alert.onOpen}
                   variant="none"
                 >
-                  <LogOut strokeWidth={1} />
-                  <Text> Logout</Text>
+                  <LogOut strokeWidth={1.5} />
+                  <Text fontWeight="600"> Logout</Text>
                   <AlertDialog isOpen={alert.isOpen} onClose={alert.onClose}>
                     <AlertDialogOverlay />
                     <AlertDialogContent>
@@ -530,7 +552,7 @@ const Dashboard = () => {
             <Box
               flexGrow="1.5"
               flexDirection="column"
-              bg="transparent"
+              bg="#fff"
               maxHeight="calc(100vh - 100px)"
               overflowY="auto"
             >
@@ -567,10 +589,16 @@ const Dashboard = () => {
                         <Profile name={post.name} authorId={post.authorId} />
                       </Flex>
 
-                      <Text as="kbd" ml="24px" fontSize="10px" color="gray.500">
+                      <Text
+                        as="kbd"
+                        ml="24px"
+                        mt="4px"
+                        fontSize="10px"
+                        color="gray.500"
+                      >
                         {formatDistanceToNow(post.datePosted)} ago
                       </Text>
-                      <Flex pl="32px" py="32px" justify="space-between">
+                      <Flex pl="32px" pt="12px" justify="space-between">
                         <Box>
                           <Heading size="md">{post.postTitle}</Heading>
                           <br />
@@ -628,7 +656,7 @@ const Dashboard = () => {
             </Box>
             <Box
               flexGrow="1"
-              m="0 12px 0 32px"
+              m="0 32px 0 32px"
               h="100%"
               bg="#fff"
               pl="12px"
@@ -653,7 +681,7 @@ const Dashboard = () => {
                   Terms & Conditions
                 </Text>
                 <Text color="gray.500" fontSize="xs">
-                  codeminded.dev@gmail.com
+                  codeminded.dev@example.com
                 </Text>
               </Box>
             </Box>
