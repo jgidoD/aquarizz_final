@@ -16,10 +16,18 @@ import {
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "./context/AuthContext";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import { useEffect, useState } from "react";
+import { calcLength } from "framer-motion";
+
 const Register = () => {
   const { createUser } = UserAuth();
+  const [userData, setUserData] = useState();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
+
   const {
     register,
     reset,
@@ -29,29 +37,65 @@ const Register = () => {
   } = useForm();
 
   const handleRegister = async (data) => {
-    await createUser(data.email, data.password)
-      .then(() => {
-        toast({
-          title: "Account Created.",
-          description: "Welcome to Aquarizz!",
-          status: "success",
-          duration: 4000,
-        });
-        navigate("/dashboard");
-      })
-      .catch((error) => {
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            toast({
-              position: "top",
-              title: "Can't create account.",
-              description: "Sorry, email is already in use.",
-              status: "error",
-              duration: 4000,
-            });
-            break;
-        }
+    try {
+      const { user } = await createUser(data.email, data.password);
+
+      toast({
+        position: "top",
+        status: "success",
+        title: "You are now registered!.",
+        description: "Your account is successfully created.",
+        duration: 4000,
       });
+      await setDoc(doc(db, "users1", user.uid), {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        userID: user.uid,
+        dateCreated: Date.now(),
+        createdAt: serverTimestamp(),
+        location: data.location,
+        phoneNumber: data.phoneNumber,
+      });
+      navigate("/dashboard");
+    } catch (err) {
+      switch (err.code) {
+        case "auth/email-already-in-use":
+          return toast({
+            position: "top",
+            status: "error",
+            title: "Can't create account.",
+            description: "Sorry, email is already in use.",
+            duration: 4000,
+          });
+      }
+    }
+
+    // .then( (userCredentials) => {
+
+    //   toast({
+    //     title: "Account Created.",
+    //     description: "Welcome to Aquarizz!",
+    //     status: "success",
+    //     duration: 4000,
+    //     position: "top"
+    //   });
+
+    // }).catch((error) => {
+    //   switch (error.code) {
+    //     case "auth/email-already-in-use":
+    //       toast({
+    //         position: "top",
+    //         title: "Can't create account.",
+    //         description: "Sorry, email is already in use.",
+    //         status: "error",
+    //         duration: 4000,
+    //         position: "top"
+
+    //       });
+    //       break;
+    //   }
+    // });
 
     reset();
   };
@@ -89,7 +133,7 @@ const Register = () => {
                 )}
               </FormControl>
               <FormControl>
-                <FormLabel>Full Name (LN,FN MI)</FormLabel>
+                <FormLabel>Name(You can use any name)</FormLabel>
                 <Input
                   type="text"
                   {...register("name", {
