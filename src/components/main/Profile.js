@@ -9,7 +9,6 @@ const Profile = (props) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    //
     navigate(`/profile/${uid}`);
   };
   return (
